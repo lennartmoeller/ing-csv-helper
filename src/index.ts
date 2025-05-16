@@ -99,10 +99,12 @@
     const inject = (): void => {
         if (!document.getElementById(BUTTON_ID)) {
             document.body.append(createButton());
+            observer.disconnect();
         }
     };
 
-    new MutationObserver(inject).observe(document.body, {
+    const observer = new MutationObserver(inject);
+    observer.observe(document.body, {
         childList: true,
         subtree: true,
     });
