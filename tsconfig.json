@@ -10,11 +10,11 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "noEmitOnError": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "noEmitOnError": false,
     "baseUrl": "./src",
     "paths": {
       "@/*": [
