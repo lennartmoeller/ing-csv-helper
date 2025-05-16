@@ -29,15 +29,28 @@
         return await waitFor(
             () => {
                 const elements = Array.from(document.querySelectorAll<HTMLElement>(selector));
-                const matchingElements = elements.filter(element => element.textContent?.trim() === text);
-                if (matchingElements.length !== 1) {
-                    return null;
-                }
-                return matchingElements[0];
+                const matchingElements = elements.filter(el => el.textContent?.trim() === text);
+                return matchingElements.length === 1 ? matchingElements[0] : null;
             },
             `Element with text "${text}" not found or multiple found for selector "${selector}"`
         );
     };
+
+    const waitForModal = (timeout = 5000): Promise<Element> =>
+        new Promise((resolve, reject) => {
+            const observer = new MutationObserver(() => {
+                const modal = document.querySelector(".panel-wrap--modal[aria-modal='true']");
+                if (modal) {
+                    observer.disconnect();
+                    resolve(modal);
+                }
+            });
+            observer.observe(document.body, {childList: true, subtree: true});
+            setTimeout(() => {
+                observer.disconnect();
+                reject(new Error("Export modal not found"));
+            }, timeout);
+        });
 
     const applyAndExport = async (): Promise<void> => {
         try {
@@ -59,11 +72,8 @@
             );
             exportEl.click();
 
-            // Wait for modal
-            await waitFor(
-                () => document.querySelector(".panel-wrap--modal[aria-modal='true']") as Element | null,
-                "Export modal not found"
-            );
+            // Wait for modal via MutationObserver
+            await waitForModal();
 
             // Click on "CSV (Excel)"
             const csvEl = await selectByText("label.label--radio", "CSV (Excel)");
@@ -104,10 +114,7 @@
     };
 
     const observer = new MutationObserver(inject);
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
+    observer.observe(document.body, {childList: true, subtree: true});
 
     inject();
 })();
