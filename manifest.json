@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "ING CSV Downloader",
+  "version": "2.0",
+  "description": "Adds a ‘Download CSV’ button directly on the ING transaction page.",
+  "permissions": [
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://banking.ing.de/app/obligo/umsatzanzeige*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://banking.ing.de/app/obligo/umsatzanzeige*"
+      ],
+      "js": [
+        "dist/content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "ING CSV Downloader"
+  }
+}

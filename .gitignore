@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
+
+# Node
+/dist
+/node_modules
