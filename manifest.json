@@ -15,7 +15,7 @@
         "https://banking.ing.de/app/obligo/umsatzanzeige*"
       ],
       "js": [
-        "dist/content.js"
+        "dist/index.js"
       ],
       "run_at": "document_idle"
     }
