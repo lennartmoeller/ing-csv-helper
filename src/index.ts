@@ -86,6 +86,8 @@
             );
             confirmEl.click();
         } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            alert(`Export failed: ${message}`);
             console.error("[ING CSV] ", err);
         }
     };
