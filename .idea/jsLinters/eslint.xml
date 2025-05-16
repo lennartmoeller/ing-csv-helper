@@ -2,5 +2,6 @@
 <project version="4">
   <component name="EslintConfiguration">
     <extra-options value="--flag unstable_ts_config" />
+    <option name="fix-on-save" value="true" />
   </component>
 </project>
