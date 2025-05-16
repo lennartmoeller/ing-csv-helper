@@ -1,56 +1,45 @@
 (() => {
     const BUTTON_ID = "ing-csv-download-btn";
+    const parent = document.querySelector("main") ?? document.body;
 
-    const waitFor = <T>(
-        fn: () => T | null,
-        errMsg: string,
-        interval = 100,
-        timeout = 5000
+    const waitForElement = async <T extends HTMLElement>(
+        check: () => T | null,
+        description: string,
+        timeout: number = 5000,
     ): Promise<T> =>
         new Promise((resolve, reject) => {
-            const start = Date.now();
-            const check = () => {
-                const result = fn();
-                if (result) {
-                    return resolve(result);
+            const initial = check();
+            if (initial) {
+                return resolve(initial);
+            }
+            const observer = new MutationObserver(() => {
+                const el = check();
+                if (el) {
+                    clearTimeout(timer);
+                    observer.disconnect();
+                    resolve(el);
                 }
-                if (Date.now() - start > timeout) {
-                    return reject(new Error(errMsg));
-                }
-                setTimeout(check, interval);
-            };
-            check();
+            });
+            observer.observe(document.body, {childList: true, subtree: true});
+            const timer = setTimeout(() => {
+                observer.disconnect();
+                reject(new Error(`Timed out waiting for ${description}`));
+            }, timeout);
         });
 
     const selectByText = async (
         selector: string,
         text: string
     ): Promise<HTMLElement> => {
-        return await waitFor(
+        return await waitForElement(
             () => {
                 const elements = Array.from(document.querySelectorAll<HTMLElement>(selector));
                 const matchingElements = elements.filter(el => el.textContent?.trim() === text);
                 return matchingElements.length === 1 ? matchingElements[0] : null;
             },
-            `Element with text "${text}" not found or multiple found for selector "${selector}"`
+            `element with text "${text}" for selector "${selector}"`
         );
     };
-
-    const waitForModal = (timeout = 5000): Promise<Element> =>
-        new Promise((resolve, reject) => {
-            const observer = new MutationObserver(() => {
-                const modal = document.querySelector(".panel-wrap--modal[aria-modal='true']");
-                if (modal) {
-                    observer.disconnect();
-                    resolve(modal);
-                }
-            });
-            observer.observe(document.body, {childList: true, subtree: true});
-            setTimeout(() => {
-                observer.disconnect();
-                reject(new Error("Export modal not found"));
-            }, timeout);
-        });
 
     const applyAndExport = async (): Promise<void> => {
         try {
@@ -72,8 +61,11 @@
             );
             exportEl.click();
 
-            // Wait for modal via MutationObserver
-            await waitForModal();
+            // Wait for modal
+            await waitForElement(
+                () => document.querySelector<HTMLElement>(".panel-wrap--modal[aria-modal='true']"),
+                "export modal"
+            );
 
             // Click on "CSV (Excel)"
             const csvEl = await selectByText("label.label--radio", "CSV (Excel)");
@@ -102,21 +94,29 @@
             right: "16px",
         });
         btn.classList.add("button-default");
+        btn.setAttribute("aria-label", "Exportiere CSV der letzten 12 Monate");
         btn.addEventListener("click", () => {
-            void applyAndExport();
+            btn.disabled = true;
+            btn.textContent = "Exportiere...";
+            btn.style.cursor = "wait";
+            void applyAndExport().finally(() => {
+                btn.disabled = false;
+                btn.textContent = "Export CSV";
+                btn.style.cursor = "pointer";
+            });
         });
         return btn;
     };
 
     const inject = (): void => {
         if (!document.getElementById(BUTTON_ID)) {
-            document.body.append(createButton());
+            parent.append(createButton());
             observer.disconnect();
         }
     };
 
     const observer = new MutationObserver(inject);
-    observer.observe(document.body, {childList: true, subtree: true});
+    observer.observe(parent, {childList: true, subtree: true});
 
     inject();
 })();
